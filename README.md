@@ -124,7 +124,7 @@ Replace your_steam_api_key_here with your actual Steam API key.
 ### Step 2: Verify the Directory Structure
 
 Ensure your project directory looks like this:
-
+```
 C:\steam-library-fetcher
  ├── app.py
  ├── run.py
@@ -132,7 +132,7 @@ C:\steam-library-fetcher
  ├── requirements.txt
  └── static/
      └── index.html
-
+```
 - app.py: The main Flask application with API routes.
 - run.py: The script to start the Waitress server.
 - .env: Contains your Steam API key.
