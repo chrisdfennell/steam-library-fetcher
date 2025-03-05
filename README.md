@@ -136,8 +136,6 @@ C:\steam-library-fetcher
     ├── style.css      # CSS styles
     ├── script.js      # JavaScript logic
     └── README.html    # Additional README in HTML format
-
-text
 ```
 - app.py: The main Flask application with API routes.
 - run.py: The script to start the Waitress server.
