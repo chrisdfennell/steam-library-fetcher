@@ -49,7 +49,12 @@ csp = {
     ],
     'style-src': [
         "'self'",
-        "'unsafe-inline'"  # Allow inline styles (required for index.html)
+        "'unsafe-inline'",  # Allow inline styles (required for index.html)
+        "https://fonts.googleapis.com"
+    ],
+    'font-src': [
+        "'self'",
+        "https://fonts.gstatic.com"
     ],
     'img-src': [
         "'self'",
@@ -61,7 +66,15 @@ Talisman(app, content_security_policy=csp, force_https=False, strict_transport_s
 # Configure a requests session with retry logic and delays for Steam API calls
 session = requests.Session()
 retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+session.mount('http://', HTTPAdapter(max_retries=retries))
 session.mount('https://', HTTPAdapter(max_retries=retries))
+
+# Set headers to mimic a browser request
+session.headers.update({
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.9'
+})
 
 def fetch_game_details(appid):
     # Validate appid
@@ -130,7 +143,7 @@ def get_library():
 
     # Validate pagination parameters
     # Allow larger per_page for full library fetch (e.g., per_page=10000)
-    max_per_page = 10000 if per_page > 1000 else 100
+    max_per_page = 10000 if per_page > 1000 else 500  # Increased default max_per_page to 500
     if page < 1 or per_page < 1 or per_page > max_per_page:
         print(f"Invalid pagination parameters: page={page}, per_page={per_page}, max_per_page={max_per_page}")
         return jsonify({"error": "Invalid pagination parameters"}), 400
@@ -155,20 +168,38 @@ def get_library():
 
     print(f"Resolving username: {username}")
     resolve_url = f"http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={API_KEY}&vanityurl={username}"
-    resolve_response = requests.get(resolve_url)
-    resolve_data = resolve_response.json()
-    print(f"ResolveVanityURL response: {resolve_data}")
+    try:
+        resolve_response = session.get(resolve_url, timeout=5)
+        print(f"ResolveVanityURL request URL: {resolve_url}")
+        print(f"ResolveVanityURL response: {resolve_response.status_code} - {resolve_response.text}")
+        resolve_response.raise_for_status()  # Raise an exception for HTTP errors
+        resolve_data = resolve_response.json()
+        print(f"ResolveVanityURL response data: {resolve_data}")
 
-    if resolve_data["response"]["success"] != 1:
-        print(f"Failed to resolve username: {username}")
-        return jsonify({"error": "Invalid username or profile not found"}), 404
-    steam_id = resolve_data["response"]["steamid"]
-    print(f"Resolved SteamID64: {steam_id}")
+        if resolve_data["response"]["success"] != 1:
+            print(f"Failed to resolve username: {username}")
+            return jsonify({"error": "Invalid username or profile not found"}), 404
+        steam_id = resolve_data["response"]["steamid"]
+        print(f"Resolved SteamID64: {steam_id}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error resolving username {username}: {str(e)}")
+        return jsonify({"error": f"Failed to resolve username: {str(e)}"}), 500
 
     library_url = f"http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={API_KEY}&steamid={steam_id}&format=json&include_appinfo=true"
-    library_response = requests.get(library_url)
-    library_data = library_response.json()
-    print(f"GetOwnedGames response summary: {library_data.get('response', {}).get('game_count', 0)} games")
+    try:
+        library_response = session.get(library_url, timeout=5)
+        print(f"GetOwnedGames request URL: {library_url}")
+        print(f"GetOwnedGames response: {library_response.status_code} - {library_response.text}")
+        if library_response.status_code == 400:
+            return jsonify({"error": "Invalid SteamID64 or profile does not exist."}), 400
+        if library_response.status_code == 403:
+            return jsonify({"error": "Profile is private. Please set your game details to public in Steam (Settings > Privacy)."}), 403
+        library_response.raise_for_status()  # Raise an exception for other HTTP errors
+        library_data = library_response.json()
+        print(f"GetOwnedGames response summary: {library_data.get('response', {}).get('game_count', 0)} games")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error for SteamID {steam_id}: {str(e)}")
+        return jsonify({"error": f"Failed to fetch data from Steam API: {str(e)}"}), 500
 
     if "response" in library_data and "games" in library_data["response"]:
         games = library_data["response"]["games"]
@@ -302,7 +333,7 @@ def get_library_by_id():
 
     # Validate pagination parameters
     # Allow larger per_page for full library fetch (e.g., per_page=10000)
-    max_per_page = 10000 if per_page > 1000 else 100
+    max_per_page = 10000 if per_page > 1000 else 500  # Increased default max_per_page to 500
     if page < 1 or per_page < 1 or per_page > max_per_page:
         print(f"Invalid pagination parameters: page={page}, per_page={per_page}, max_per_page={max_per_page}")
         return jsonify({"error": "Invalid pagination parameters"}), 400
@@ -321,9 +352,28 @@ def get_library_by_id():
 
     print(f"Fetching library for SteamID64: {steam_id}")
     library_url = f"http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={API_KEY}&steamid={steam_id}&format=json&include_appinfo=true"
-    library_response = requests.get(library_url)
-    library_data = library_response.json()
-    print(f"GetOwnedGames response summary: {library_data.get('response', {}).get('game_count', 0)} games")
+    try:
+        # Add a delay to avoid rate limiting
+        time.sleep(0.5)
+        library_response = session.get(library_url, timeout=10)
+        print(f"GetOwnedGames request URL: {library_url}")
+        print(f"GetOwnedGames response headers: {library_response.headers}")
+        print(f"GetOwnedGames response: {library_response.status_code} - {library_response.text}")
+        if library_response.status_code == 400:
+            print("Steam API returned 400 - Invalid SteamID64 or profile does not exist")
+            return jsonify({"error": "Invalid SteamID64 or profile does not exist."}), 400
+        if library_response.status_code == 403:
+            print("Steam API returned 403 - Profile is private")
+            return jsonify({"error": "Profile is private. Please set your game details to public in Steam (Settings > Privacy)."}), 403
+        if library_response.status_code == 429:
+            print("Steam API returned 429 - Rate limit exceeded")
+            return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
+        library_response.raise_for_status()  # Raise an exception for other HTTP errors
+        library_data = library_response.json()
+        print(f"GetOwnedGames response summary: {library_data.get('response', {}).get('game_count', 0)} games")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error for SteamID {steam_id}: {str(e)}")
+        return jsonify({"error": f"Failed to fetch data from Steam API: {str(e)}"}), 500
 
     if "response" in library_data and "games" in library_data["response"]:
         games = library_data["response"]["games"]
@@ -439,16 +489,29 @@ def get_achievements():
 
     # Validate steam_id and appid
     if not steam_id or not steam_id.isdigit() or len(steam_id) != 17:
+        print("Invalid SteamID64 format")
         return jsonify({"error": "Invalid SteamID64"}), 400
     if not appid or not appid.isdigit():
+        print("Invalid AppID")
         return jsonify({"error": "Invalid AppID"}), 400
 
     url = f"http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?key={API_KEY}&steamid={steam_id}&appid={appid}"
-    response = requests.get(url)
-    data = response.json()
-    if data.get("playerstats", {}).get("success"):
-        return jsonify(data["playerstats"])
-    return jsonify({"error": "No achievements found or profile is private"}), 404
+    try:
+        response = session.get(url, timeout=5)
+        print(f"GetPlayerAchievements request URL: {url}")
+        print(f"GetPlayerAchievements response: {response.status_code} - {response.text}")
+        if response.status_code == 400:
+            return jsonify({"error": "Invalid SteamID64 or AppID."}), 400
+        if response.status_code == 403:
+            return jsonify({"error": "Profile is private. Please set your game details to public in Steam (Settings > Privacy)."}), 403
+        response.raise_for_status()  # Raise an exception for other HTTP errors
+        data = response.json()
+        if data.get("playerstats", {}).get("success"):
+            return jsonify(data["playerstats"])
+        return jsonify({"error": "No achievements found or profile is private"}), 404
+    except requests.exceptions.RequestException as e:
+        print(f"Request error for achievements (SteamID {steam_id}, appid {appid}): {str(e)}")
+        return jsonify({"error": f"Failed to fetch achievements from Steam API: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)

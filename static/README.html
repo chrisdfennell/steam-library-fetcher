@@ -12,16 +12,27 @@
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: #f4f4f9; /* Light mode background */
+            color: #333; /* Light mode text */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode {
+            background-color: #222; /* Dark mode background */
+            color: #d4d4d4; /* Dark mode text */
         }
         h1, h2, h3 {
-            color: #2c3e50;
+            color: #2c3e50; /* Light mode heading color */
+        }
+        .dark-mode h1, .dark-mode h2, .dark-mode h3 {
+            color: #61dafb; /* Dark mode heading color */
         }
         h1 {
             font-size: 2em;
-            border-bottom: 2px solid #2c3e50;
+            border-bottom: 2px solid #2c3e50; /* Light mode border */
             padding-bottom: 10px;
+        }
+        .dark-mode h1 {
+            border-bottom: 2px solid #61dafb; /* Dark mode border */
         }
         h2 {
             font-size: 1.5em;
@@ -42,28 +53,53 @@
             margin: 5px 0;
         }
         code {
-            background-color: #f0f0f0;
+            background-color: #f0f0f0; /* Light mode code background */
             padding: 2px 4px;
             border-radius: 4px;
             font-family: Consolas, monospace;
         }
+        .dark-mode code {
+            background-color: #3c3c3c; /* Dark mode code background */
+        }
         pre {
-            background-color: #f0f0f0;
+            background-color: #f0f0f0; /* Light mode pre background */
             padding: 10px;
             border-radius: 4px;
             overflow-x: auto;
             font-family: Consolas, monospace;
             white-space: pre-wrap;
         }
+        .dark-mode pre {
+            background-color: #3c3c3c; /* Dark mode pre background */
+        }
         a {
-            color: #2980b9;
+            color: #2980b9; /* Light mode link color */
             text-decoration: none;
         }
         a:hover {
             text-decoration: underline;
         }
+        .dark-mode a {
+            color: #61dafb; /* Dark mode link color */
+        }
         .section {
             margin-bottom: 20px;
+        }
+        #darkModeToggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .dark-mode #darkModeToggle {
+            background-color: #444;
         }
     </style>
 </head>
@@ -127,24 +163,20 @@
             <li><strong>A Steam API Key</strong>: Obtain a Steam API key by registering on the <a href="https://partner.steamgames.com/" target="_blank">Steamworks Developer Portal</a>. You'll need this to interact with the Steam API.</li>
             <li><strong>A Steam Account with Public Game Details</strong>: Ensure your Steam profile’s game details are set to public (Settings > Privacy in Steam).</li>
             <li><strong>A Web Browser</strong>: To access the application (e.g., Chrome, Firefox).</li>
-            <li><strong>Optional: Git</strong>: If you’re cloning the repository from Git.</li>
         </ul>
     </div>
 
     <div class="section" id="installation">
         <h2>Installation</h2>
 
-        <h3>Step 1: Clone or Download the Project</h3>
-        <p>If you’re using Git, clone the repository to your local machine:</p>
-        <pre><code>git clone &lt;repository-url&gt;
-cd steam-library-fetcher</code></pre>
-        <p>Alternatively, download the project files as a ZIP and extract them to a directory (e.g., <code>C:\xampp\htdocs\steam</code>).</p>
+        <h3>Step 1: Download the Project</h3>
+        <p>Download the project files as a ZIP and extract them to a directory (e.g., <code>C:\steam-library-fetcher</code>).</p>
 
         <h3>Step 2: Set Up a Virtual Environment (Optional but Recommended)</h3>
         <p>A virtual environment isolates the project’s dependencies from your global Python environment.</p>
         <ol>
             <li>Navigate to the project directory:
-                <pre><code>cd C:\xampp\htdocs\steam</code></pre>
+                <pre><code>cd C:\steam-library-fetcher</code></pre>
             </li>
             <li>Create a virtual environment:
                 <pre><code>python -m venv venv</code></pre>
@@ -187,7 +219,7 @@ waitress</code></pre>
         <h3>Step 1: Create the <code>.env</code> File</h3>
         <p>The Steam API key is stored in a <code>.env</code> file to keep it secure.</p>
         <ol>
-            <li>Create a file named <code>.env</code> in the project directory (<code>C:\xampp\htdocs\steam\.env</code>).</li>
+            <li>Create a file named <code>.env</code> in the project directory (<code>C:\steam-library-fetcher\.env</code>).</li>
             <li>Add your Steam API key to the file:
                 <pre><code>STEAM_API_KEY=your_steam_api_key_here</code></pre>
                 <p>Replace <code>your_steam_api_key_here</code> with your actual Steam API key.</p>
@@ -197,13 +229,14 @@ waitress</code></pre>
 
         <h3>Step 2: Verify the Directory Structure</h3>
         <p>Ensure your project directory looks like this:</p>
-        <pre><code>C:\xampp\htdocs\steam\
-    ├── app.py
-    ├── run.py
-    ├── .env
-    ├── requirements.txt
-    ├── static/
-    │   ├── index.html
+        <pre><code>C:\steam-library-fetcher\
+  app.py
+  run.py
+  .env
+  requirements.txt
+  static/
+    index.html
+    readme.html
 </code></pre>
         <ul>
             <li><code>app.py</code>: The main Flask application with API routes.</li>
@@ -211,6 +244,7 @@ waitress</code></pre>
             <li><code>.env</code>: Contains your Steam API key.</li>
             <li><code>requirements.txt</code>: Lists the Python dependencies.</li>
             <li><code>static/index.html</code>: The frontend HTML file.</li>
+            <li><code>static/readme.html</code>: The HTML version of this README.</li>
         </ul>
 
         <h3>Step 3: Customize Credentials (Optional)</h3>
@@ -226,7 +260,7 @@ waitress</code></pre>
         <ol>
             <li><strong>Start the Server</strong>:
                 <p>Navigate to the project directory and run <code>run.py</code>:</p>
-                <pre><code>cd C:\xampp\htdocs\steam
+                <pre><code>cd C:\steam-library-fetcher
 python run.py</code></pre>
                 <p>You should see the following output:</p>
                 <pre><code>Starting Waitress server...
@@ -241,13 +275,13 @@ Access it in your browser or click the link above. Press Ctrl+C to stop.</code><
                 <ul>
                     <li>Open your web browser and go to <code>http://localhost:5000</code>.</li>
                     <li>Log in with the credentials displayed in the terminal (default: <code>admin</code>/<code>securepassword123</code>).</li>
-                    <li>Enter your Steam username or SteamID64 (e.g., <code>76561198025171445</code>) and optionally a friend’s username or SteamID64.</li>
+                    <li>Enter your Steam username or SteamID64 (e.g., <code>76561198025171445</code>) and optionally a friend's username or SteamID64.</li>
                     <li>Click "Get Libraries" to fetch and display the game library.</li>
                 </ul>
             </li>
             <li><strong>Stop the Server</strong>:
                 <ul>
-                    <li>To stop the server, press <code>Ctrl+C</code> in the terminal. You’ll see:</li>
+                    <li>To stop the server, press <code>Ctrl+C</code> in the terminal. You'll see:</li>
                     <pre><code>Waitress server stopped.</code></pre>
                 </ul>
             </li>
@@ -303,7 +337,7 @@ def verify_password(username, password):
             </li>
             <li><strong>Environment Variables</strong>:
                 <ul>
-                    <li>The Steam API key is stored in a <code>.env</code> file. Ensure this file is not committed to version control (e.g., add <code>.env</code> to <code>.gitignore</code>).</li>
+                    <li>The Steam API key is stored in a <code>.env</code> file. Ensure this file is not committed to version control.</li>
                 </ul>
             </li>
             <li><strong>Network Access</strong>:
@@ -321,7 +355,7 @@ def verify_password(username, password):
         <ul>
             <li><strong>"Steam API key not found in .env file"</strong>:
                 <ul>
-                    <li>Ensure the <code>.env</code> file exists in <code>C:\xampp\htdocs\steam</code> and contains <code>STEAM_API_KEY=your_key</code>.</li>
+                    <li>Ensure the <code>.env</code> file exists in <code>C:\steam-library-fetcher</code> and contains <code>STEAM_API_KEY=your_key</code>.</li>
                     <li>Verify that <code>python-dotenv</code> is installed (<code>pip install python-dotenv</code>).</li>
                 </ul>
             </li>
@@ -374,5 +408,25 @@ def verify_password(username, password):
         <h2>License</h2>
         <p>This project is licensed under the MIT License. Feel free to modify and distribute it as needed.</p>
     </div>
+
+    <button id="darkModeToggle" title="Toggle Dark/Light Mode">🌙</button>
+
+    <script>
+        document.getElementById('darkModeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            document.getElementById('darkModeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        });
+
+        // Load initial dark mode state
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeToggle').textContent = '☀️';
+            } else {
+                document.getElementById('darkModeToggle').textContent = '🌙';
+            }
+        });
+    </script>
 </body>
 </html>
