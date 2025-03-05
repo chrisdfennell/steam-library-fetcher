@@ -1,0 +1,57 @@
+# Python-specific ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.virtualenv/
+
+# Environment variables
+.env
+
+# SQLite database
+game_details.db
+
+# Logs
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+node_modules/
+
+# Testing and coverage
+.coverage
+coverage.xml
+*.cover
+*.cache
+nosetests.xml
+coverage/
+
+# Miscellaneous
+*.swp
+*.bak
+*.tmp
+*.temp
+*~
+
+# Project-specific temporary files
+*.pid
+*.seed
+*.pid.lock
