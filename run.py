@@ -1,25 +1,19 @@
 import signal
 import sys
-from waitress import serve
-from app import app, users  # Import the users dictionary from app.py
+import os
+from app import app
 
 def signal_handler(sig, frame):
-    print("\nWaitress server stopped.")
+    print("\nServer stopped.")
     sys.exit(0)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
-    host = '127.0.0.1'  # Changed to localhost for security, revert to '0.0.0.0' if network access is needed
-    port = 5000
-    url = f"http://localhost:{port}"
+    host = '127.0.0.1'
+    port = int(os.environ.get("PORT", 5000))
+    url = f"http://{host}:{port}"
     
-    # Prepare the credentials message
-    credentials = "\n".join([f"  Username: {username}\n  Password: {password}" for username, password in users.items()])
-    
-    print(f"Starting Waitress server...")
+    print(f"Starting Flask development server...")
     print(f"Server is running at: {url}")
-    print("Credentials for access:")
-    print(credentials)
-    print(f"\nAccess it in your browser or click the link above. Press Ctrl+C to stop.")
-    serve(app, host=host, port=port, threads=4, _quiet=False)
-    print("Waitress server stopped.")
+    print(f"Access it in your browser. Press Ctrl+C to stop.")
+    app.run(debug=True, host=host, port=port)

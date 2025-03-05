@@ -5,3 +5,6 @@ flask-limiter
 python-dotenv
 flask-talisman
 waitress
+flask-sqlalchemy
+werkzeug
+psycopg2-binary
