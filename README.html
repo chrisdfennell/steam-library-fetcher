@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Library Fetcher - README</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            font-size: 2em;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        h3 {
+            font-size: 1.2em;
+            margin-top: 15px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+            white-space: pre-wrap;
+        }
+        a {
+            color: #2980b9;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Steam Library Fetcher</h1>
+    <p>A Flask-based web application that fetches and displays a user's Steam game library, including playtime statistics, top games, recently played games, and library comparisons with friends. The app includes features like pagination, sorting, filtering, and a dark mode toggle.</p>
+
+    <div class="section">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#setup">Setup</a></li>
+            <li><a href="#running-the-application">Running the Application</a></li>
+            <li><a href="#security-considerations">Security Considerations</a></li>
+            <li><a href="#troubleshooting">Troubleshooting</a></li>
+            <li><a href="#future-improvements">Future Improvements</a></li>
+            <li><a href="#license">License</a></li>
+        </ul>
+    </div>
+
+    <div class="section" id="overview">
+        <h2>Overview</h2>
+        <p>The Steam Library Fetcher allows users to input their Steam username or SteamID64 to retrieve their game library via the Steam API. The app displays detailed statistics, a playtime trends chart, top 20 games by playtime, recently played games, and a full paginated list of games. Users can also compare their library with a friend's library. The app is secured with basic HTTP authentication, rate-limiting, and input validation.</p>
+    </div>
+
+    <div class="section" id="features">
+        <h2>Features</h2>
+        <ul>
+            <li><strong>Fetch Steam Library</strong>: Retrieve a user's game library using their Steam username or SteamID64.</li>
+            <li><strong>Playtime Statistics</strong>: View total playtime, average playtime, games played, and most active platform.</li>
+            <li><strong>Playtime Trends Chart</strong>: Visualize playtime trends over time using Chart.js.</li>
+            <li><strong>Top 20 Games</strong>: Display the top 20 games by playtime with game icons and details.</li>
+            <li><strong>Recently Played Games</strong>: Show games played in the last 2 weeks or recently.</li>
+            <li><strong>Library Comparison</strong>: Compare your library with a friend's library to find common and unique games.</li>
+            <li><strong>Full List with Pagination</strong>: Browse the full library with pagination, sorting, and filtering options.</li>
+            <li><strong>Dark Mode</strong>: Toggle between light and dark modes with persistence via local storage.</li>
+            <li><strong>Export to CSV</strong>: Export the filtered game list to a CSV file.</li>
+            <li><strong>Shareable Links</strong>: Generate shareable links with current filters and pagination state.</li>
+            <li><strong>Favorites</strong>: Mark games as favorites with persistence via local storage.</li>
+            <li><strong>Security Features</strong>:
+                <ul>
+                    <li>Basic HTTP authentication to restrict access.</li>
+                    <li>Rate-limiting to prevent abuse.</li>
+                    <li>Input validation to prevent injection attacks.</li>
+                    <li>Content Security Policy (CSP) to mitigate XSS attacks.</li>
+                    <li>Secure storage of the Steam API key using a <code>.env</code> file.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="prerequisites">
+        <h2>Prerequisites</h2>
+        <p>Before setting up the Steam Library Fetcher, ensure you have the following:</p>
+        <ul>
+            <li><strong>Python 3.6+</strong>: The application is built using Python. You can download it from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>.</li>
+            <li><strong>pip</strong>: Python’s package manager, which comes bundled with Python.</li>
+            <li><strong>A Steam API Key</strong>: Obtain a Steam API key by registering on the <a href="https://partner.steamgames.com/" target="_blank">Steamworks Developer Portal</a>. You'll need this to interact with the Steam API.</li>
+            <li><strong>A Steam Account with Public Game Details</strong>: Ensure your Steam profile’s game details are set to public (Settings > Privacy in Steam).</li>
+            <li><strong>A Web Browser</strong>: To access the application (e.g., Chrome, Firefox).</li>
+            <li><strong>Optional: Git</strong>: If you’re cloning the repository from Git.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="installation">
+        <h2>Installation</h2>
+
+        <h3>Step 1: Clone or Download the Project</h3>
+        <p>If you’re using Git, clone the repository to your local machine:</p>
+        <pre><code>git clone &lt;repository-url&gt;
+cd steam-library-fetcher</code></pre>
+        <p>Alternatively, download the project files as a ZIP and extract them to a directory (e.g., <code>C:\xampp\htdocs\steam</code>).</p>
+
+        <h3>Step 2: Set Up a Virtual Environment (Optional but Recommended)</h3>
+        <p>A virtual environment isolates the project’s dependencies from your global Python environment.</p>
+        <ol>
+            <li>Navigate to the project directory:
+                <pre><code>cd C:\xampp\htdocs\steam</code></pre>
+            </li>
+            <li>Create a virtual environment:
+                <pre><code>python -m venv venv</code></pre>
+            </li>
+            <li>Activate the virtual environment:
+                <ul>
+                    <li>On Windows:
+                        <pre><code>venv\Scripts\activate</code></pre>
+                    </li>
+                    <li>On macOS/Linux:
+                        <pre><code>source venv/bin/activate</code></pre>
+                    </li>
+                </ul>
+                <p>You should see <code>(venv)</code> in your terminal prompt.</p>
+            </li>
+        </ol>
+
+        <h3>Step 3: Install Dependencies</h3>
+        <p>The project requires several Python packages, listed in the <code>requirements.txt</code> file. Install them using <code>pip</code>:</p>
+        <ol>
+            <li>Ensure you have a <code>requirements.txt</code> file in the project directory with the following content:
+                <pre><code>flask
+requests
+flask-httpauth
+flask-limiter
+python-dotenv
+flask-talisman
+waitress</code></pre>
+            </li>
+            <li>Install the dependencies:
+                <pre><code>pip install -r requirements.txt</code></pre>
+                <p>This will install Flask, Waitress, and other required packages.</p>
+            </li>
+        </ol>
+    </div>
+
+    <div class="section" id="setup">
+        <h2>Setup</h2>
+
+        <h3>Step 1: Create the <code>.env</code> File</h3>
+        <p>The Steam API key is stored in a <code>.env</code> file to keep it secure.</p>
+        <ol>
+            <li>Create a file named <code>.env</code> in the project directory (<code>C:\xampp\htdocs\steam\.env</code>).</li>
+            <li>Add your Steam API key to the file:
+                <pre><code>STEAM_API_KEY=your_steam_api_key_here</code></pre>
+                <p>Replace <code>your_steam_api_key_here</code> with your actual Steam API key.</p>
+            </li>
+            <li>Ensure the file is named exactly <code>.env</code> (not <code>.env.txt</code>). On Windows, you may need to enable "File name extensions" in File Explorer to confirm the name.</li>
+        </ol>
+
+        <h3>Step 2: Verify the Directory Structure</h3>
+        <p>Ensure your project directory looks like this:</p>
+        <pre><code>C:\xampp\htdocs\steam\
+    ├── app.py
+    ├── run.py
+    ├── .env
+    ├── requirements.txt
+    ├── static/
+    │   ├── index.html
+</code></pre>
+        <ul>
+            <li><code>app.py</code>: The main Flask application with API routes.</li>
+            <li><code>run.py</code>: The script to start the Waitress server.</li>
+            <li><code>.env</code>: Contains your Steam API key.</li>
+            <li><code>requirements.txt</code>: Lists the Python dependencies.</li>
+            <li><code>static/index.html</code>: The frontend HTML file.</li>
+        </ul>
+
+        <h3>Step 3: Customize Credentials (Optional)</h3>
+        <p>The app uses basic HTTP authentication with a hardcoded username and password (<code>admin</code>/<code>securepassword123</code>). These are defined in <code>app.py</code>:</p>
+        <pre><code>users = {
+    "admin": "securepassword123"
+}</code></pre>
+        <p>To change the credentials, edit the <code>users</code> dictionary in <code>app.py</code> with your preferred username and password. For production, consider using a proper user database with hashed passwords (see <a href="#security-considerations">Security Considerations</a>).</p>
+    </div>
+
+    <div class="section" id="running-the-application">
+        <h2>Running the Application</h2>
+        <ol>
+            <li><strong>Start the Server</strong>:
+                <p>Navigate to the project directory and run <code>run.py</code>:</p>
+                <pre><code>cd C:\xampp\htdocs\steam
+python run.py</code></pre>
+                <p>You should see the following output:</p>
+                <pre><code>Starting Waitress server...
+Server is running at: http://localhost:5000
+Credentials for access:
+  Username: admin
+  Password: securepassword123
+
+Access it in your browser or click the link above. Press Ctrl+C to stop.</code></pre>
+            </li>
+            <li><strong>Access the App</strong>:
+                <ul>
+                    <li>Open your web browser and go to <code>http://localhost:5000</code>.</li>
+                    <li>Log in with the credentials displayed in the terminal (default: <code>admin</code>/<code>securepassword123</code>).</li>
+                    <li>Enter your Steam username or SteamID64 (e.g., <code>76561198025171445</code>) and optionally a friend’s username or SteamID64.</li>
+                    <li>Click "Get Libraries" to fetch and display the game library.</li>
+                </ul>
+            </li>
+            <li><strong>Stop the Server</strong>:
+                <ul>
+                    <li>To stop the server, press <code>Ctrl+C</code> in the terminal. You’ll see:</li>
+                    <pre><code>Waitress server stopped.</code></pre>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="section" id="security-considerations">
+        <h2>Security Considerations</h2>
+        <p>The app includes several security measures, but there are additional steps to consider for production use:</p>
+        <ul>
+            <li><strong>Basic Authentication</strong>:
+                <ul>
+                    <li>The app uses basic HTTP authentication with hardcoded credentials. For production, store user credentials in a database (e.g., SQLite) and hash passwords using <code>werkzeug.security</code>.</li>
+                    <li>Example:
+                        <pre><code>from werkzeug.security import generate_password_hash, check_password_hash
+
+users = {
+    "admin": generate_password_hash("securepassword123")
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and check_password_hash(users[username], password):
+        return username
+    return None</code></pre>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>Rate-Limiting</strong>:
+                <ul>
+                    <li>Rate-limiting is enabled to prevent abuse (e.g., 5 requests per minute for API endpoints). Adjust limits in <code>app.py</code> if needed.</li>
+                </ul>
+            </li>
+            <li><strong>Content Security Policy (CSP)</strong>:
+                <ul>
+                    <li>The app uses <code>flask-talisman</code> to enforce a CSP. Inline scripts and styles are allowed (<code>'unsafe-inline'</code>) due to the current design of <code>index.html</code>. For better security, move inline scripts and styles to external files and remove <code>'unsafe-inline'</code>.</li>
+                </ul>
+            </li>
+            <li><strong>HTTPS</strong>:
+                <ul>
+                    <li>The app currently runs over HTTP. For production, enable HTTPS by providing SSL certificates to Waitress in <code>run.py</code>:
+                        <pre><code>serve(
+    app,
+    host=host,
+    port=port,
+    threads=4,
+    _quiet=False,
+    ssl_context=('cert.pem', 'key.pem')
+)</code></pre>
+                    </li>
+                    <li>Use a service like Let’s Encrypt to obtain free SSL certificates.</li>
+                </ul>
+            </li>
+            <li><strong>Environment Variables</strong>:
+                <ul>
+                    <li>The Steam API key is stored in a <code>.env</code> file. Ensure this file is not committed to version control (e.g., add <code>.env</code> to <code>.gitignore</code>).</li>
+                </ul>
+            </li>
+            <li><strong>Network Access</strong>:
+                <ul>
+                    <li>The app is configured to run on <code>127.0.0.1</code> (localhost only). If you need to access it from other devices on your network, change <code>host</code> to <code>'0.0.0.0'</code> in <code>run.py</code>, but configure your firewall to restrict access.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="troubleshooting">
+        <h2>Troubleshooting</h2>
+
+        <h3>Common Issues</h3>
+        <ul>
+            <li><strong>"Steam API key not found in .env file"</strong>:
+                <ul>
+                    <li>Ensure the <code>.env</code> file exists in <code>C:\xampp\htdocs\steam</code> and contains <code>STEAM_API_KEY=your_key</code>.</li>
+                    <li>Verify that <code>python-dotenv</code> is installed (<code>pip install python-dotenv</code>).</li>
+                </ul>
+            </li>
+            <li><strong>"Error fetching data: HTTP error! Status: 400"</strong>:
+                <ul>
+                    <li>Check the Python logs for details. Common causes:</li>
+                    <li>Invalid pagination parameters: Ensure <code>per_page</code> and <code>page</code> values are within allowed limits.</li>
+                    <li>Invalid SteamID64: Verify the SteamID64 is 17 digits long.</li>
+                    <li>Profile is private: Ensure the Steam profile’s game details are set to public.</li>
+                </ul>
+            </li>
+            <li><strong>Images Not Loading</strong>:
+                <ul>
+                    <li>Verify that the Steam API returns <code>img_icon_url</code> for games. If not, the game may not have an icon.</li>
+                    <li>Check the browser console for CSP errors. The CSP in <code>app.py</code> should allow <code>img-src</code> from <code>http://media.steampowered.com</code>.</li>
+                </ul>
+            </li>
+            <li><strong>"ModuleNotFoundError: No module named 'flask-limiter'"</strong>:
+                <ul>
+                    <li>Ensure all dependencies are installed (<code>pip install -r requirements.txt</code>).</li>
+                </ul>
+            </li>
+            <li><strong>"Page 1 of 1 (Total Games)"</strong>:
+                <ul>
+                    <li>If the total games count is incorrect, check the Python logs for errors in fetching or filtering the game library.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Debugging Tips</h3>
+        <ul>
+            <li><strong>Python Logs</strong>: Check the terminal where <code>run.py</code> is running for detailed logs about API requests, filtering, and errors.</li>
+            <li><strong>Browser Console</strong>: Open the browser developer tools (F12 > Console) to see client-side errors, such as failed API requests.</li>
+            <li><strong>Network Tab</strong>: Use the browser’s Network tab (F12 > Network) to inspect the HTTP requests and responses, including status codes and error messages.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="future-improvements">
+        <h2>Future Improvements</h2>
+        <ul>
+            <li><strong>User Database</strong>: Replace hardcoded credentials with a proper user database (e.g., SQLite) and hashed passwords.</li>
+            <li><strong>HTTPS Support</strong>: Enable HTTPS for secure communication.</li>
+            <li><strong>External Scripts/Styles</strong>: Move inline scripts and styles to external files to remove <code>'unsafe-inline'</code> from the CSP.</li>
+            <li><strong>Advanced Filtering</strong>: Add more filtering options, such as filtering by genre or release date.</li>
+            <li><strong>Deployment</strong>: Deploy the app to a cloud provider (e.g., Heroku, Render, or a VPS) for public access.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="license">
+        <h2>License</h2>
+        <p>This project is licensed under the MIT License. Feel free to modify and distribute it as needed.</p>
+    </div>
+</body>
+</html>

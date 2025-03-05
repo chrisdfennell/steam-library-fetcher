@@ -1,0 +1,7 @@
+flask
+requests
+flask-httpauth
+flask-limiter
+python-dotenv
+flask-talisman
+waitress

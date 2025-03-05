@@ -1,0 +1,13 @@
+# Exclude sensitive files
+.env
+
+# Exclude virtual environments
+venv/
+env/
+
+# Exclude Python cache files
+__pycache__/
+*.pyc
+
+# Exclude VSCodium workspace settings
+.vscode/
