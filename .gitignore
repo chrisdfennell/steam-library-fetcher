@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python-specific ignores
 __pycache__/
 *.pyc
@@ -55,3 +56,63 @@ coverage/
 *.pid
 *.seed
 *.pid.lock
+=======
+# Python-specific ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.virtualenv/
+
+# Environment variables
+.env
+
+# SQLite database
+users.db
+*.sqlite
+
+# Logs
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+node_modules/
+
+# Testing and coverage
+.coverage
+coverage.xml
+*.cover
+*.cache
+nosetests.xml
+coverage/
+
+# Miscellaneous
+*.swp
+*.bak
+*.tmp
+*.temp
+*~
+
+# Project-specific temporary files
+*.pid
+*.seed
+*.pid.lock
+>>>>>>> 4902f97 (Set up Steam Library Fetcher in new directory for GitHub upload and created a new userdatabase for the user/pass as well as a run.bat script to start this whole project.)
