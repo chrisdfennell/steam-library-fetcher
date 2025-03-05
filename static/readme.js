@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 document.getElementById('darkModeToggle').addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
@@ -13,7 +12,6 @@ window.addEventListener('load', () => {
     } else {
         document.getElementById('darkModeToggle').textContent = '🌙';
     }
-=======
 document.getElementById('darkModeToggle').addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
