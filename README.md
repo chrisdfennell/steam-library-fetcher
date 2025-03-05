@@ -131,7 +131,8 @@ C:\steam-library-fetcher
  ├── .env
  ├── requirements.txt
  └── static/
-     └── index.html
+      ├──index.html
+      └──README.html
 ```
 - app.py: The main Flask application with API routes.
 - run.py: The script to start the Waitress server.
