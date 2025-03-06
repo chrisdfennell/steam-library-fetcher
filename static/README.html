@@ -1,11 +1,3 @@
-
----
-
-### Updated `README.html`
-
-Replace `C:\steam-library-fetcher\static\readme.html` with this:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,17 +59,23 @@ Replace `C:\steam-library-fetcher\static\readme.html` with this:
         <h2>Prerequisites</h2>
         <p>Before running the Steam Library Fetcher, ensure you have the following:</p>
         <ul>
-            <li><strong>Python 3.6+</strong>: Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a> and add to PATH.</li>
+            <li><strong>Python 3.6+</strong>: Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a> and add to PATH.
+                <ul>
+                    <li>On Windows, this is typically <code>python</code>.</li>
+                    <li>On macOS/Linux, this is typically <code>python3</code>.</li>
+                </ul>
+            </li>
             <li><strong>A Steam API Key</strong>: Obtain from the <a href="https://partner.steamgames.com/" target="_blank">Steamworks Developer Portal</a>. You'll need this to interact with the Steam API.</li>
             <li><strong>A Steam Account with Public Game Details</strong>: Set your Steam profile’s game details to public (Settings > Privacy in Steam).</li>
             <li><strong>A Web Browser</strong>: To access the application (e.g., Chrome, Firefox).</li>
+            <li><strong>Git</strong> (optional): To manage version control, if you’re cloning or pushing to GitHub.</li>
         </ul>
     </div>
 
     <div class="section" id="setup-and-running">
         <h2>Setup and Running</h2>
-        <p>The application uses a single <code>run.bat</code> script to handle both initial setup and regular running.</p>
-        <h3>First-Time Setup</h3>
+        <p>The application provides scripts to automate setup and running on different operating systems: <code>run.bat</code> for Windows, and <code>run.sh</code> for macOS and Linux.</p>
+        <h3>First-Time Setup on Windows</h3>
         <ol>
             <li><strong>Download the Project</strong>:
                 <p>Download the project files as a ZIP and extract them to <code>C:\steam-library-fetcher</code>.</p>
@@ -92,8 +90,41 @@ Replace `C:\steam-library-fetcher\static\readme.html` with this:
                     <li>Prompt for your Steam API key (if <code>.env</code> doesn’t exist).</li>
                     <li>Prompt for a custom username and password to set up the initial user.</li>
                     <li>Create <code>users.db</code> with your credentials.</li>
-                    <li>Start the server on port <code>5000</code> (or <code>5001</code> if <code>5000</code> is busy).</li>
+                    <li>If another instance is running, stop it automatically.</li>
+                    <li>Start the server on port <code>5000</code> (or <code>5001</code> if <code>5000</code> is busy) in the same window.</li>
                 </ul>
+                <p>To stop the server, press <code>Ctrl+C</code> in the Command Prompt window.</p>
+            </li>
+            <li><strong>Access the App</strong>:
+                <p>Open your browser to <code>http://localhost:5000</code> (or <code>5001</code> if prompted).</p>
+                <p>Log in with the username and password you set during setup.</p>
+            </li>
+        </ol>
+        <h3>First-Time Setup on macOS or Linux</h3>
+        <ol>
+            <li><strong>Download the Project</strong>:
+                <p>Clone the repository or download the project files as a ZIP and extract them to a directory (e.g., <code>~/steam-library-fetcher</code>):</p>
+                <pre><code>git clone https://github.com/chrisdfennell/steam-library-fetcher.git
+cd steam-library-fetcher</code></pre>
+            </li>
+            <li><strong>Make the Script Executable</strong>:
+                <p>Set execute permissions for <code>run.sh</code>:</p>
+                <pre><code>chmod +x run.sh</code></pre>
+            </li>
+            <li><strong>Run the Application</strong>:
+                <p>Run the script:</p>
+                <pre><code>./run.sh</code></pre>
+                <p>The script will:</p>
+                <ul>
+                    <li>Check for Python 3 and install a virtual environment if needed.</li>
+                    <li>Install dependencies from <code>requirements.txt</code>.</li>
+                    <li>Prompt for your Steam API key (if <code>.env</code> doesn’t exist).</li>
+                    <li>Prompt for a custom username and password to set up the initial user.</li>
+                    <li>Create <code>users.db</code> with your credentials.</li>
+                    <li>If another instance is running, stop it automatically.</li>
+                    <li>Start the server on port <code>5000</code> (or <code>5001</code> if <code>5000</code> is busy) in the same terminal.</li>
+                </ul>
+                <p>To stop the server, press <code>Ctrl+C</code> in the terminal.</p>
             </li>
             <li><strong>Access the App</strong>:
                 <p>Open your browser to <code>http://localhost:5000</code> (or <code>5001</code> if prompted).</p>
@@ -101,13 +132,19 @@ Replace `C:\steam-library-fetcher\static\readme.html` with this:
             </li>
         </ol>
         <h3>Regular Running</h3>
-        <p>Simply double-click <code>run.bat</code> or run:</p>
+        <p><strong>On Windows:</strong></p>
+        <p>Double-click <code>run.bat</code> or run:</p>
         <pre><code>C:\steam-library-fetcher>run.bat</code></pre>
-        <p>If setup is complete (<code>venv</code> and <code>users.db</code> exist), it skips installation steps and starts the server directly.</p>
+        <p><strong>On macOS or Linux:</strong></p>
+        <p>Run the script:</p>
+        <pre><code>./run.sh</code></pre>
+        <p>If setup is complete (<code>venv</code> and <code>users.db</code> exist), the script skips installation steps and starts the server directly in the same window/terminal.</p>
+        <p>If another instance is running, the script will stop it automatically before starting a new one.</p>
         <p>Access <code>http://localhost:5000</code> (or <code>5001</code>) and log in with your custom credentials.</p>
+        <p>To stop the server, press <code>Ctrl+C</code> in the window/terminal.</p>
         <h3>Notes</h3>
         <ul>
-            <li><strong>Resetting Credentials</strong>: Delete <code>users.db</code> and rerun <code>run.bat</code> to set a new username/password.</li>
+            <li><strong>Resetting Credentials</strong>: Delete <code>users.db</code> and rerun the script (<code>run.bat</code> or <code>run.sh</code>) to set a new username/password.</li>
             <li><strong>Port Conflicts</strong>: The script automatically frees port <code>5000</code> or switches to <code>5001</code> if needed.</li>
         </ul>
     </div>
@@ -115,7 +152,7 @@ Replace `C:\steam-library-fetcher\static\readme.html` with this:
     <div class="section" id="security-considerations">
         <h2>Security Considerations</h2>
         <ul>
-            <li><strong>User Management</strong>: Uses a SQLite database (<code>users.db</code>) with hashed passwords set via <code>run.bat</code>.</li>
+            <li><strong>User Management</strong>: Uses a SQLite database (<code>users.db</code>) with hashed passwords set via the setup script.</li>
             <li><strong>HTTPS</strong>: Enforced in production via Talisman (for local testing, HTTP is used).</li>
             <li><strong>CSP</strong>: Inline scripts/styles removed for better security.</li>
             <li><strong>Rate-Limiting</strong>: In-memory storage is used locally; configure a backend (e.g., Redis) for production.</li>
@@ -125,9 +162,14 @@ Replace `C:\steam-library-fetcher\static\readme.html` with this:
     <div class="section" id="troubleshooting">
         <h2>Troubleshooting</h2>
         <ul>
-            <li><strong>"Can't reach this page"</strong>: Check the server window for errors. Ensure the port (<code>5000</code> or <code>5001</code>) is free (<code>netstat -a -n -o | find "5000"</code>).</li>
-            <li><strong>Wrong Credentials</strong>: If <code>admin/securepassword123</code> still works, delete <code>users.db</code> and rerun <code>run.bat</code>.</li>
-            <li><strong>Server Crashes</strong>: Run <code>python run.py</code> manually to see detailed errors.</li>
+            <li><strong>"Can't reach this page"</strong>: Check the server console for errors. Ensure the port (<code>5000</code> or <code>5001</code>) is free:
+                <ul>
+                    <li>On Windows: <code>netstat -a -n -o | find "5000"</code></li>
+                    <li>On macOS/Linux: <code>lsof -i :5000</code></li>
+                </ul>
+            </li>
+            <li><strong>Wrong Credentials</strong>: If <code>admin/securepassword123</code> still works, delete <code>users.db</code> and rerun the script.</li>
+            <li><strong>Server Crashes</strong>: Check the console output for errors. If needed, run <code>python run.py</code> (Windows) or <code>python3 run.py</code> (macOS/Linux) manually to see detailed errors.</li>
         </ul>
     </div>
 

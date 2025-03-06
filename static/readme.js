@@ -26,5 +26,4 @@ window.addEventListener('load', () => {
     } else {
         document.getElementById('darkModeToggle').textContent = '🌙';
     }
->>>>>>> 4902f97 (Set up Steam Library Fetcher in new directory for GitHub upload and created a new userdatabase for the user/pass as well as a run.bat script to start this whole project.)
 });
