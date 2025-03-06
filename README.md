@@ -37,14 +37,17 @@ The Steam Library Fetcher allows users to input their Steam username or SteamID6
 ## Prerequisites
 Before running the Steam Library Fetcher, ensure you have:
 - **Python 3.6+**: Download from [python.org](https://www.python.org/downloads/) and add to PATH.
+  - On Windows, this is typically `python`.
+  - On macOS/Linux, this is typically `python3`.
 - **A Steam API Key**: Obtain from the [Steamworks Developer Portal](https://partner.steamgames.com/). You'll need this to interact with the Steam API.
 - **A Steam Account with Public Game Details**: Set your Steam profile’s game details to public (Settings > Privacy in Steam).
 - **A Web Browser**: To access the application (e.g., Chrome, Firefox).
+- **Git** (optional): To manage version control, if you’re cloning or pushing to GitHub.
 
 ## Setup and Running
-The application uses a single `run.bat` script to handle both initial setup and regular running.
+The application provides scripts to automate setup and running on different operating systems: `run.bat` for Windows, and `run.sh` for macOS and Linux.
 
-### First-Time Setup
+### First-Time Setup on Windows
 1. **Download the Project**:
    - Download the project files as a ZIP and extract them to `C:\steam-library-fetcher`.
 
@@ -59,34 +62,79 @@ The application uses a single `run.bat` script to handle both initial setup and 
      - Prompt for your Steam API key (if `.env` doesn’t exist).
      - Prompt for a custom username and password to set up the initial user.
      - Create `users.db` with your credentials.
-     - Start the server on port `5000` (or `5001` if `5000` is busy).
+     - If another instance is running, stop it automatically.
+     - Start the server on port `5000` (or `5001` if `5000` is busy) in the same window.
+   - To stop the server, press `Ctrl+C` in the Command Prompt window.
 
 3. **Access the App**:
    - Open your browser to `http://localhost:5000` (or `5001` if prompted).
    - Log in with the username and password you set during setup.
 
+### First-Time Setup on macOS or Linux
+1. **Download the Project**:
+   - Clone the repository or download the project files as a ZIP and extract them to a directory (e.g., `~/steam-library-fetcher`):
+     ```bash
+     git clone https://github.com/chrisdfennell/steam-library-fetcher.git
+     cd steam-library-fetcher
+     ```
+
+2. **Make the Script Executable**:
+   - Set execute permissions for `run.sh`:
+     ```bash
+     chmod +x run.sh
+     ```
+
+3. **Run the Application**:
+   - Run the script:
+     ```bash
+     ./run.sh
+     ```
+   - The script will:
+     - Check for Python 3 and install a virtual environment if needed.
+     - Install dependencies from `requirements.txt`.
+     - Prompt for your Steam API key (if `.env` doesn’t exist).
+     - Prompt for a custom username and password to set up the initial user.
+     - Create `users.db` with your credentials.
+     - If another instance is running, stop it automatically.
+     - Start the server on port `5000` (or `5001` if `5000` is busy) in the same terminal.
+   - To stop the server, press `Ctrl+C` in the terminal.
+
+4. **Access the App**:
+   - Open your browser to `http://localhost:5000` (or `5001` if prompted).
+   - Log in with the username and password you set during setup.
+
 ### Regular Running
-- Simply double-click `run.bat` or run:
-  ```cmd
-  C:\steam-library-fetcher>run.bat
-  ```
-- If setup is complete (`venv` and `users.db` exist), it skips installation steps and starts the server directly.
+- **On Windows**:
+  - Double-click `run.bat` or run:
+    ```cmd
+    C:\steam-library-fetcher>run.bat
+    ```
+- **On macOS or Linux**:
+  - Run the script:
+    ```bash
+    ./run.sh
+    ```
+- If setup is complete (`venv` and `users.db` exist), the script skips installation steps and starts the server directly in the same window/terminal.
+- If another instance is running, the script will stop it automatically before starting a new one.
 - Access `http://localhost:5000` (or `5001`) and log in with your custom credentials.
+- To stop the server, press `Ctrl+C` in the window/terminal.
 
 ### Notes
-- **Resetting Credentials**: Delete `users.db` and rerun `run.bat` to set a new username/password.
+- **Resetting Credentials**: Delete `users.db` and rerun the script (`run.bat` or `run.sh`) to set a new username/password.
 - **Port Conflicts**: The script automatically frees port `5000` or switches to `5001` if needed.
 
 ## Security Considerations
-- **User Management**: Uses a SQLite database (`users.db`) with hashed passwords set via `run.bat`.
+- **User Management**: Uses a SQLite database (`users.db`) with hashed passwords set via the setup script.
 - **HTTPS**: Enforced in production via Talisman (for local testing, HTTP is used).
 - **CSP**: Inline scripts/styles removed for better security.
 - **Rate-Limiting**: In-memory storage is used locally; configure a backend (e.g., Redis) for production.
 
 ## Troubleshooting
-- **"Can't reach this page"**: Check the server window for errors. Ensure the port (`5000` or `5001`) is free (`netstat -a -n -o | find "5000"`).
-- **Wrong Credentials**: If `admin/securepassword123` still works, delete `users.db` and rerun `run.bat`.
-- **Server Crashes**: Run `python run.py` manually to see detailed errors.
+- **"Can't reach this page"**: Check the server console for errors. Ensure the port (`5000` or `5001`) is free:
+  - On Windows: `netstat -a -n -o | find "5000"`
+  - On macOS/Linux: `lsof -i :5000`
+- **Wrong Credentials**: If `admin/securepassword123` still works, delete `users.db` and rerun the script.
+- **Server Crashes**: Check the console output for errors. If needed, run `python run.py` (Windows) or `python3 run.py` (macOS/Linux) manually to see detailed errors.
 
 ## Future Improvements
 - Add a user registration UI.
