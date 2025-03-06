@@ -56,5 +56,5 @@ coverage/
 *.pid
 *.seed
 *.pid.lock
-.lock
-.gitignore
+*.lock
+*.gitignore
