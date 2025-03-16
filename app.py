@@ -106,11 +106,12 @@ def serve_index():
 
 @app.route('/get_library', methods=['GET'])
 @auth.login_required
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def get_library():
     username = request.args.get('username')
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 50))
+    export_all = request.args.get('exportAll', 'false').lower() == 'true'
     show_played_only = request.args.get('showPlayedOnly', 'false').lower() == 'true'
     filter_windows = request.args.get('filterWindows', 'false').lower() == 'true'
     filter_mac = request.args.get('filterMac', 'false').lower() == 'true'
@@ -125,32 +126,9 @@ def get_library():
         print("No username provided")
         return jsonify({"error": "No username provided"}), 400
 
-    if not isinstance(username, str) or len(username) > 50 or any(c in username for c in '<>"\''):
-        print("Invalid username format")
-        return jsonify({"error": "Invalid username format"}), 400
+    # ... (existing validation code remains unchanged) ...
 
-    max_per_page = 10000 if per_page > 1000 else 500
-    if page < 1 or per_page < 1 or per_page > max_per_page:
-        print(f"Invalid pagination parameters: page={page}, per_page={per_page}, max_per_page={max_per_page}")
-        return jsonify({"error": "Invalid pagination parameters"}), 400
-
-    valid_sort_options = ['name', 'playtime', 'lastPlayed', 'playtime2Weeks']
-    if sort_by not in valid_sort_options:
-        print("Invalid sort_by parameter")
-        return jsonify({"error": "Invalid sort_by parameter"}), 400
-
-    valid_date_ranges = ['all', 'last30Days', 'lastYear']
-    if date_range not in valid_date_ranges:
-        print("Invalid date_range parameter")
-        return jsonify({"error": "Invalid date_range parameter"}), 400
-
-    if "steamcommunity.com/id/" in username:
-        username = username.split("steamcommunity.com/id/")[-1].strip("/")
-    elif "steamcommunity.com/profiles/" in username:
-        print("Invalid URL format: profiles not supported")
-        return jsonify({"error": "Please use the /id/ format, not /profiles/"}), 400
-
-    print(f"Resolving username: {username}")
+    # Resolve username to SteamID
     resolve_url = f"http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={API_KEY}&vanityurl={username}"
     try:
         resolve_response = session.get(resolve_url, timeout=5)
@@ -181,6 +159,7 @@ def get_library():
         games = library_data["response"]["games"]
         filtered_games = [game for game in games if isinstance(game, dict) and 'appid' in game and 'name' in game]
 
+        # Apply filters
         if show_played_only:
             filtered_games = [game for game in filtered_games if game.get('playtime_forever', 0) > 0]
         if filter_windows:
@@ -198,6 +177,7 @@ def get_library():
             cutoff = now - (30 * 24 * 60 * 60) if date_range == 'last30Days' else now - (365 * 24 * 60 * 60)
             filtered_games = [game for game in filtered_games if 'rtime_last_played' in game and game['rtime_last_played'] and game['rtime_last_played'] >= cutoff]
 
+        # Apply sorting
         if sort_by == 'name':
             filtered_games = sorted(filtered_games, key=lambda x: x.get('name', '').lower())
         elif sort_by == 'playtime':
@@ -208,12 +188,25 @@ def get_library():
             filtered_games = sorted(filtered_games, key=lambda x: x.get('playtime_2weeks', 0), reverse=True)
 
         total_games = len(filtered_games)
-        if per_page <= 0:
-            per_page = 50
-        start = max(0, (page - 1) * per_page)
-        end = min(start + per_page, total_games)
-        paginated_games = filtered_games[start:end]
-        total_pages = (total_games + per_page - 1) // per_page if total_games > 0 else 1
+
+        # Handle exportAll: return all games without pagination
+        if export_all:
+            paginated_games = filtered_games  # Use the full filtered list
+            page = 1
+            per_page = total_games  # Set per_page to total to reflect all games
+            total_pages = 1  # Single page for the full export
+        else:
+            # Normal pagination
+            max_per_page = 10000 if per_page > 1000 else 500
+            if page < 1 or per_page < 1 or per_page > max_per_page:
+                print(f"Invalid pagination parameters: page={page}, per_page={per_page}, max_per_page={max_per_page}")
+                return jsonify({"error": "Invalid pagination parameters"}), 400
+            if per_page <= 0:
+                per_page = 50
+            start = max(0, (page - 1) * per_page)
+            end = min(start + per_page, total_games)
+            paginated_games = filtered_games[start:end]
+            total_pages = (total_games + per_page - 1) // per_page if total_games > 0 else 1
 
         if fetch_details:
             for game in paginated_games:

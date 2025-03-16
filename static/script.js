@@ -4,6 +4,7 @@ let friendGames = [];
 let currentPage = 1;
 let totalPages = 1;
 let totalGames = 0;
+let showFullLibrary = false; // Track if full library mode is enabled
 const gamesPerPage = 50; // For paginated "Full List"
 const initialFetchPerPage = 2000; // Increased to ensure we fetch all games
 const recentDaysInSeconds = 31 * 24 * 60 * 60; // 31 days for recent games
@@ -37,7 +38,7 @@ async function fetchWithRetry(url, options, retries = 3, delay = 5000) {
         await delayRequest();
         try {
             const response = await fetch(url, options);
-            if (response.status === 429) { // Retry only on rate limiting
+            if (response.status === 429) {
                 if (i === retries - 1) {
                     throw new Error('HTTP error! Status: 429 (Too Many Requests) - Max retries reached');
                 }
@@ -51,7 +52,6 @@ async function fetchWithRetry(url, options, retries = 3, delay = 5000) {
             return await response.json();
         } catch (error) {
             if (error.message.includes('400')) {
-                // Do not retry on 400 errors
                 throw new Error('Invalid request (HTTP 400). The SteamID64 may be invalid, the profile may not exist, or it may be private.');
             }
             if (i === retries - 1) throw error;
@@ -166,9 +166,10 @@ async function fetchAndRender() {
 }
 
 async function fetchPaginatedGames(page) {
+    showFullLibrary = document.getElementById('showFullLibrary').checked; // Update the flag
     const params = {
-        page: page,
-        per_page: gamesPerPage,
+        page: showFullLibrary ? 1 : page, // Use page 1 for full library
+        per_page: showFullLibrary ? 10000 : gamesPerPage, // Fetch all games when full library is enabled
         showPlayedOnly: document.getElementById('showPlayedOnly').checked,
         filterWindows: document.getElementById('filterWindows').checked,
         filterMac: document.getElementById('filterMac').checked,
@@ -176,16 +177,17 @@ async function fetchPaginatedGames(page) {
         filterDeck: document.getElementById('filterDeck').checked,
         search: document.getElementById('searchInput').value.trim(),
         sortBy: document.getElementById('sortBy').value,
-        dateRange: document.getElementById('dateRange').value
+        dateRange: document.getElementById('dateRange').value,
+        exportAll: showFullLibrary // Use exportAll=true when showing full library
     };
     const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&');
     const url = `${userUrl}&${queryString}`;
 
-    console.log('Fetching paginated games with URL:', url);
+    console.log('Fetching games with URL:', url);
 
     try {
         const userData = await fetchWithRetry(url, { mode: 'cors' });
-        console.log('Fetched paginated data for page:', page, userData);
+        console.log('Fetched data for page:', page, userData);
         console.log('Total pages received:', userData.total_pages);
         console.log('Total games received:', userData.total_games);
         if (userData.error) {
@@ -193,7 +195,7 @@ async function fetchPaginatedGames(page) {
         } else {
             // Filter out invalid game entries
             currentPageGames = userData.games.filter(game => game && typeof game === 'object' && 'appid' in game && 'name' in game);
-            totalPages = userData.total_pages;
+            totalPages = showFullLibrary ? 1 : userData.total_pages; // Override totalPages in full library mode
             totalGames = userData.total_games;
             renderGames();
         }
@@ -463,6 +465,7 @@ function renderGames() {
     const prevPageButton = document.getElementById('prevPage');
     const nextPageButton = document.getElementById('nextPage');
     const pageInfo = document.getElementById('pageInfo');
+    const paginationDiv = document.querySelector('.pagination');
     const maxPlaytime = Math.max(...allGames.map(game => game.playtime_forever || 0));
 
     gameList.innerHTML = '';
@@ -483,32 +486,39 @@ function renderGames() {
         gameList.appendChild(li);
     });
 
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1} (Total Games: ${totalGames})`;
-    prevPageButton.disabled = currentPage === 1;
-    nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
+    // Show or hide pagination based on showFullLibrary
+    if (showFullLibrary) {
+        paginationDiv.style.display = 'none'; // Hide pagination controls
+        pageInfo.textContent = `Showing all ${totalGames} games`;
+    } else {
+        paginationDiv.style.display = 'flex'; // Show pagination controls
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1} (Total Games: ${totalGames})`;
+        prevPageButton.disabled = currentPage === 1;
+        nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
 
-    // Add pagination event listeners (remove old ones to prevent duplicates)
-    const prevPageButtonClone = prevPageButton.cloneNode(true);
-    const nextPageButtonClone = nextPageButton.cloneNode(true);
-    prevPageButton.parentNode.replaceChild(prevPageButtonClone, prevPageButton);
-    nextPageButton.parentNode.replaceChild(nextPageButtonClone, nextPageButton);
+        // Add pagination event listeners (remove old ones to prevent duplicates)
+        const prevPageButtonClone = prevPageButton.cloneNode(true);
+        const nextPageButtonClone = nextPageButton.cloneNode(true);
+        prevPageButton.parentNode.replaceChild(prevPageButtonClone, prevPageButton);
+        nextPageButton.parentNode.replaceChild(nextPageButtonClone, nextPageButton);
 
-    prevPageButtonClone.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            fetchPaginatedGames(currentPage);
-            savePreferences();
-            updateShareableLink();
-        }
-    });
-    nextPageButtonClone.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            fetchPaginatedGames(currentPage);
-            savePreferences();
-            updateShareableLink();
-        }
-    });
+        prevPageButtonClone.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchPaginatedGames(currentPage);
+                savePreferences();
+                updateShareableLink();
+            }
+        });
+        nextPageButtonClone.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                fetchPaginatedGames(currentPage);
+                savePreferences();
+                updateShareableLink();
+            }
+        });
+    }
 
     setupLazyLoading();
 }
@@ -604,6 +614,7 @@ function savePreferences() {
         filterMac: document.getElementById('filterMac').checked,
         filterLinux: document.getElementById('filterLinux').checked,
         filterDeck: document.getElementById('filterDeck').checked,
+        showFullLibrary: document.getElementById('showFullLibrary').checked, // Add this
         search: document.getElementById('searchInput').value.trim(),
         sortBy: document.getElementById('sortBy').value,
         dateRange: document.getElementById('dateRange').value,
@@ -620,6 +631,8 @@ function loadPreferences() {
     document.getElementById('filterMac').checked = preferences.filterMac || false;
     document.getElementById('filterLinux').checked = preferences.filterLinux || false;
     document.getElementById('filterDeck').checked = preferences.filterDeck || false;
+    document.getElementById('showFullLibrary').checked = preferences.showFullLibrary || false; // Add this
+    showFullLibrary = document.getElementById('showFullLibrary').checked; // Update the flag
     document.getElementById('searchInput').value = preferences.search || '';
     document.getElementById('sortBy').value = preferences.sortBy || 'name';
     document.getElementById('dateRange').value = preferences.dateRange || 'all';
@@ -638,6 +651,8 @@ function loadFromUrlParams() {
     document.getElementById('filterMac').checked = params.get('filterMac') === 'true';
     document.getElementById('filterLinux').checked = params.get('filterLinux') === 'true';
     document.getElementById('filterDeck').checked = params.get('filterDeck') === 'true';
+    document.getElementById('showFullLibrary').checked = params.get('showFullLibrary') === 'true'; // Add this
+    showFullLibrary = document.getElementById('showFullLibrary').checked; // Update the flag
     document.getElementById('searchInput').value = params.get('search') || '';
     document.getElementById('sortBy').value = params.get('sortBy') || 'name';
     document.getElementById('dateRange').value = params.get('dateRange') || 'all';
@@ -659,6 +674,7 @@ function updateShareableLink() {
         filterMac: document.getElementById('filterMac').checked,
         filterLinux: document.getElementById('filterLinux').checked,
         filterDeck: document.getElementById('filterDeck').checked,
+        showFullLibrary: document.getElementById('showFullLibrary').checked, // Add this
         search: document.getElementById('searchInput').value.trim(),
         sortBy: document.getElementById('sortBy').value,
         dateRange: document.getElementById('dateRange').value,
@@ -669,28 +685,65 @@ function updateShareableLink() {
     return shareableUrl;
 }
 
-document.getElementById('exportCsv').addEventListener('click', () => {
-    const filteredGames = currentPageGames;
-    const csvContent = [
-        ['Name', 'Playtime (Hours)', 'Last Played', 'Playtime Last 2 Weeks (Hours)'].join(','),
-        ...filteredGames.map(game => {
-            const hours = Math.floor((game.playtime_forever || 0) / 60);
-            const lastPlayed = game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toLocaleDateString() : 'Never';
-            const playtime2Weeks = game.playtime_2weeks ? Math.floor(game.playtime_2weeks / 60) : 0;
-            return [
-                `"${game.name.replace(/"/g, '""')}"`,
-                hours,
-                lastPlayed,
-                playtime2Weeks
-            ].join(',');
-        })
-    ].join('\n');
+document.getElementById('exportCsv').addEventListener('click', async () => {
+    const params = {
+        page: 1, // Ignored with exportAll, but required by endpoint
+        per_page: 10000, // High value to ensure all games are fetched
+        showPlayedOnly: document.getElementById('showPlayedOnly').checked,
+        filterWindows: document.getElementById('filterWindows').checked,
+        filterMac: document.getElementById('filterMac').checked,
+        filterLinux: document.getElementById('filterLinux').checked,
+        filterDeck: document.getElementById('filterDeck').checked,
+        search: document.getElementById('searchInput').value.trim(),
+        sortBy: document.getElementById('sortBy').value,
+        dateRange: document.getElementById('dateRange').value,
+        exportAll: true // Always fetch the full list for export
+    };
+    const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&');
+    const url = `${userUrl}&${queryString}`;
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'steam_library.csv';
-    link.click();
+    try {
+        const exportButton = document.getElementById('exportCsv');
+        exportButton.disabled = true;
+        exportButton.textContent = 'Exporting...';
+
+        const fullData = await fetchWithRetry(url, { mode: 'cors' });
+        if (fullData.error) {
+            document.getElementById('errorMessage').textContent = `Export failed: ${fullData.error}`;
+            return;
+        }
+
+        const filteredGames = fullData.games.filter(game => game && typeof game === 'object' && 'appid' in game && 'name' in game);
+        console.log('Exporting CSV with total games:', filteredGames.length);
+
+        const csvContent = [
+            ['Name', 'Playtime (Hours)', 'Last Played', 'Playtime Last 2 Weeks (Hours)'].join(','),
+            ...filteredGames.map(game => {
+                const hours = Math.floor((game.playtime_forever || 0) / 60);
+                const lastPlayed = game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toLocaleDateString() : 'Never';
+                const playtime2Weeks = game.playtime_2weeks ? Math.floor(game.playtime_2weeks / 60) : 0;
+                return [
+                    `"${game.name.replace(/"/g, '""')}"`,
+                    hours,
+                    lastPlayed,
+                    playtime2Weeks
+                ].join(',');
+            })
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'steam_library_full.csv'; // Renamed for clarity
+        link.click();
+    } catch (error) {
+        document.getElementById('errorMessage').textContent = `Export failed: ${error.message}`;
+        console.error('CSV export error:', error);
+    } finally {
+        const exportButton = document.getElementById('exportCsv');
+        exportButton.disabled = false;
+        exportButton.textContent = 'Export to CSV';
+    }
 });
 
 document.getElementById('shareLink').addEventListener('click', () => {
@@ -785,4 +838,11 @@ window.addEventListener('load', () => {
     } else {
         document.getElementById('darkModeToggle').textContent = '🌙';
     }
+});
+
+document.getElementById('showFullLibrary').addEventListener('change', () => {
+    currentPage = 1; // Reset to page 1
+    fetchPaginatedGames(currentPage);
+    savePreferences();
+    updateShareableLink();
 });
